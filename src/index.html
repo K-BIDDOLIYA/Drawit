@@ -1,10 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drawit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 15px;
+            background-color: #100f0f;
+        }
+
+        canvas {
+            width: 100%;
+            height: 70vh;
+            border: 1px solid #fffdfd;
+            touch-action: none;
+            background-color: #f4eeee;
+        }
+        button, input {
+            margin: 4px;
+        }
+    </style>
+</head>
 <body>
-  <h1>it works!</h1>
-  <style>
-    body { background: black; color: white; font-family: sans-serif; }
-  </style>
-  <script>
-    const title = document.querySelector("h1");
-    title.onclick = () => (title.textContent = "you clicked it");
-  </script>
+    <h3 style="color: #e9e5e5;">Drawit</h3>
+
+    <input type="color" id="color" value="#000000">
+    <input type="range" id="size" min="1" max="30" value="3">
+    <span id="number">3px</span>
+    <button onclick="clearCanvas()" style="background-color: #fdfbfb; color: #121212;">Clear</button>
+
+    <br><br>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const color = document.getElementById("color");
+        const size = document.getElementById("size");
+
+        let drawing = false;
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+        }
+
+        resizeCanvas();
+
+        canvas.addEventListener("pointerdown", function(e) {
+            drawing = true;
+            canvas.setPointerCapture(e.pointerId);
+
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener("pointermove", function(e) {
+            if (!drawing) return;
+
+            ctx.strokeStyle = color.value;
+            ctx.lineWidth = size.value;
+
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        });
+        canvas.addEventListener("pointerup", function() {
+            drawing = false;
+            saveDrawing();
+        });
+
+        canvas.addEventListener("pointercancel", function() {
+            drawing = false;
+            saveDrawing();
+        });
+
+        size.addEventListener("input", function() {
+            document.getElementById("number").textContent = size.value + "px";
+        });
+
+        function saveDrawing() {
+            localStorage.setItem("myDrawing", canvas.toDataURL());
+        }
+
+        let savedDrawing = localStorage.getItem("myDrawing");
+
+        if (savedDrawing) {
+            let image = new Image();
+
+            image.onload = function() {
+                ctx.drawImage(image, 0, 0);
+            };
+
+            image.src = savedDrawing;
+        }
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            localStorage.removeItem("myDrawing");
+        }
+    </script>
 </body>
+</html>
